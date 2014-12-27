@@ -1,0 +1,15 @@
+# ${HOME}/.slckaddpkgs/slckaddpkgsrc
+#
+# This file contains the configuration settings for slckaddpkgs.sh script. By
+# default all packages are downloaded to /tmp. But this can be changed by
+# setting variable TMP to point to some other location.
+
+# =============================================================================
+
+CFDIR="${HOME}/.slckaddpkgs/"
+CFNAME="packages.cfg"
+CF=${CFDIR}${CFNAME}
+LFDIR="${HOME}/.slckaddpkgs/"
+LFNAME="downloads.log"
+LF=${LFDIR}${LFNAME}
+TMP="/tmp/"
