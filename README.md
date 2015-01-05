@@ -15,7 +15,7 @@ File packages.cfg should be populated with data in a way described with sample f
 ```
 	packages_guest.cfg
 	packages_host.cfg
-``` .
+	```
 
 After all beeing set copy slckaddpkgs.sh to desired place (e.g. `/usr/local/bin`), and make it executable.
 
