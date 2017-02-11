@@ -225,7 +225,7 @@ function get_pkg () {
 	echo -e "Retrieving slackbuild file ..." >&2
 
 	# Clear previous download
-	rm -rf ./"$(cut -d"/" -f7- <<< "$bld")"
+	rm -rf ./"$(basename "$bld")"
 
 	# Try to download slackbuild package
 	wget -nv "$bld" &>> $LF
@@ -257,7 +257,6 @@ function get_pkg () {
 
 	# Slackbuild and source file are downloaded so lets try to extract
 	# and copy them to /tmp directory
-	echo -e "Extracting slackbuild file ..." >&2
 
 	# Store pwd so we can return later
 	cwd=$(pwd)
@@ -266,8 +265,31 @@ function get_pkg () {
 
 	# Clear previous extraction
 	rm -rf ./"$pkg"
-	tar -xzf "$cwd"/$(cut -d"/" -f7- <<< "$bld")
-	cd ./$(cut -d"/" -f7- <<< "$bld" | cut -d"." -f1)
+
+	# Check what kind of package we are dealing with
+	case $(basename "$bld") in
+		*.tar.gz)
+			echo -e "Extracting slackbuild file ..." >&2
+			tar -xzf "$cwd"/$(basename "$bld")
+			cd ./"$pkg";;
+		*.tgz)
+			echo -e "Extracting slackbuild file ..." >&2
+			tar -xzf "$cwd"/$(basename "$bld")
+			cd ./"$pkg";;
+		*.tar.xz)
+			echo -e "Extracting slackbuild file ..." >&2
+			tar -xJf "$cwd"/$(basename "$bld")
+			cd ./"$pkg";;
+		*.txz)
+			echo -e "Extracting slackbuild file ..." >&2
+			tar -xJf "$cwd"/$(basename "$bld")
+			cd ./"$pkg";;
+		*)
+			echo -e "Moving slackbuild file ..." >&2
+			mkdir ./"$pkg"
+			cd ./"$pkg"
+			mv "$cwd"/$(basename "$bld") ./;;
+	esac
 
 	while read src; do
 		sfname=$(cut -d" " -f1 <<< "$src")
@@ -301,7 +323,7 @@ function print_na {
 
 
 function print_usage {
-	echo -e "Usage: generic_getopt.sh [OPTION]" >&2
+	echo -e "Usage: slckaddpkgs.sh [OPTION]" >&2
 	echo -e "" >&2
 	echo -e "    -b                                     with -l, print brief lists" >&2
 	echo -e "" >&2
