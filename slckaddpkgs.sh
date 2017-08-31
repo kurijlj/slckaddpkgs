@@ -222,21 +222,33 @@ function get_pkg () {
 
 	echo -e "- Retrieving package \"${pkg}\" -" >&2
 	echo -e "" >&2
-	echo -e "Retrieving slackbuild file ..." >&2
 
-	# Clear previous download
-	rm -rf ./"$(basename "$bld")"
+	# Check if there is SlackBuild package at all
+	if [[ "none" == "$bld" ]]; then
+		# There is no SlackBuild package in the databse.
+		# Inform user and proceed.
+		echo -e "WARNING: There is no SlackBuild package in the database!" >&2
+		echo -e "WARNING: You must supply your own slackbuild." >&2
 
-	# Try to download slackbuild package
-	wget -nv "$bld" &>> $LF
+	else
+		# There is SlackBuild file in the database.
+		# Proceed with download.
+		echo -e "Retrieving slackbuild file ..." >&2
 
-	# Check if download was successfull, else bail out
-	rc=$?
-	if [[ ! 0 -eq $rc ]]; then
-		echo -e "Error downloading from: $bld"
-		exit 1
+		# Clear previous download
+		rm -rf ./"$(cut -d"/" -f7- <<< "$bld")"
+
+		# Try to download slackbuild package
+		wget -nv "$bld" &>> $LF
+
+		# Check if download was successfull, else bail out
+		rc=$?
+		if [[ ! 0 -eq $rc ]]; then
+			echo -e "Error downloading from: $bld"
+			exit 1
+		fi
 	fi
-	
+
 	# Download properly all source files
 	while read src; do
 		sfname=$(cut -d" " -f1 <<< "$src")
@@ -266,30 +278,18 @@ function get_pkg () {
 	# Clear previous extraction
 	rm -rf ./"$pkg"
 
-	# Check what kind of package we are dealing with
-	case $(basename "$bld") in
-		*.tar.gz)
-			echo -e "Extracting slackbuild file ..." >&2
-			tar -xzf "$cwd"/$(basename "$bld")
-			cd ./"$pkg";;
-		*.tgz)
-			echo -e "Extracting slackbuild file ..." >&2
-			tar -xzf "$cwd"/$(basename "$bld")
-			cd ./"$pkg";;
-		*.tar.xz)
-			echo -e "Extracting slackbuild file ..." >&2
-			tar -xJf "$cwd"/$(basename "$bld")
-			cd ./"$pkg";;
-		*.txz)
-			echo -e "Extracting slackbuild file ..." >&2
-			tar -xJf "$cwd"/$(basename "$bld")
-			cd ./"$pkg";;
-		*)
-			echo -e "Moving slackbuild file ..." >&2
-			mkdir ./"$pkg"
-			cd ./"$pkg"
-			mv "$cwd"/$(basename "$bld") ./;;
-	esac
+	# If SlackBuild package is user supplied, then create working directory
+	# with package name
+	if [[ "none" == "$bld" ]]; then
+		mkdir ./"$pkg"
+		cd ./"$pkg"
+
+	# SlackBuild package exists so lets extract it
+	else
+		echo -e "Extracting slackbuild file ..." >&2
+		tar -xzf "$cwd"/$(cut -d"/" -f7- <<< "$bld")
+		cd ./$(cut -d"/" -f7- <<< "$bld" | cut -d"." -f1)
+	fi
 
 	while read src; do
 		sfname=$(cut -d" " -f1 <<< "$src")
